@@ -4,6 +4,7 @@
 .vscode
 *.bat
 *.db-journal
+Untitled*.ipynb
 
 # win
 desktop.ini
