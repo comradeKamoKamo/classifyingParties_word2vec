@@ -56,6 +56,7 @@ def get_and_save_tweets(screen_name):
     logger.info(screen_name)
     with Path("get_tweets/{0}/tweets.xml".format(screen_name)).open("a",encoding="utf-8") as f:
         c = tweepy.Cursor(api.user_timeline,screen_name=screen_name,exclude_replies=True,tweet_mode="extended").items()
+        f.write("<tweets>")
         i = 0
         while True:
             try:
@@ -77,6 +78,7 @@ def get_and_save_tweets(screen_name):
                     wakatiElement.text=wakati_text
                     tree = ET.ElementTree(tweetElement)
                     tree.write(f,encoding="unicode",xml_declaration=False)
+                    f.write("</tweets>")
             except tweepy.TweepError:
                 time.sleep(60 * 15)
                 continue
