@@ -1,33 +1,30 @@
 #%%
-from logging import getLogger, NullHandler , INFO
+from logging import getLogger , NullHandler
 import xml.etree.ElementTree as ET
 
 #%%
 class XmlToTweets:
 
-    Logger = getLogger(__name__)
-
+    
     def __init__(self,xmlfilepath,*,logger=None):
-        if logger is None:
-            Logger.setLevel(INFO)
-            handler = NullHandler
-            Logger.addHandler(handler)
-            Logger.propagate = False
-        else:
-            Logger = logger
-        
+        __logger = getLogger(__name__)
+        __logger.addHandler(NullHandler())
+        logger = logger or __logger
         try:
             with open(xmlfilepath,"r",encoding="utf-8") as f:
                 self.XmlString = f.read()
         except FileNotFoundError:
-            Logger.error("FileNotFonundError{0}".format(xmlfilepath))
+            logger.error("FileNotFonundError{0}".format(xmlfilepath))
             raise
         
-    def xml_to_tweets(self,limit=0):
+    def xml_to_tweets(self,limit=0,*,exclude_wakati=False,exclude_text=False,logger=None):
+        __logger = getLogger(__name__)
+        __logger.addHandler(NullHandler())
+        logger = logger or __logger
         try:
             root = ET.fromstring(self.XmlString)
         except ET.ParseError as e:
-            Logger.error(e.args)
+            logger.error(e.args)
 
         tweets = []
         c = 0
@@ -36,9 +33,9 @@ class XmlToTweets:
             tweet["id"] = element.items()[0][1]
             logger.info("Now target: {0}".format(tweet["id"]))
             for subelement in element.getchildren():
-                if subelement.tag == "wakati":
+                if subelement.tag == "wakati" and not exclude_wakati:
                     tweet["wakati"] = subelement.text
-                elif subelement.tag == "text":
+                elif subelement.tag == "text" and not exclude_text:
                     tweet["text"]  = subelement.text
             tweets.append(tweet)
             c = c + 1
