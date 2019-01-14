@@ -5,6 +5,7 @@
 *.bat
 *.db-journal
 Untitled*.ipynb
+debug*
 
 # win
 desktop.ini
