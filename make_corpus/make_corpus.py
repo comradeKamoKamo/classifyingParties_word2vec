@@ -1,14 +1,25 @@
 #%%
-from logging import getLogger, StreamHandler, DEBUG, NullHandler, Formatter, INFO
+from logging import getLogger, StreamHandler, DEBUG, NullHandler, Formatter, INFO, basicConfig
 import re
+import os
 
 from lxml import etree
 from gensim.models import Word2Vec
 from janome import tokenizer, analyzer, tokenfilter
-import numpy as np
-
+import mysql.connector
 
 #%%
+def setup_connector():
+    username = os.environ.get("MYSQL_USERNAME")
+    password = os.environ.get("MYSQL_PASSWORD")
+    conn = mysql.connector.connect(user=username, password=password, host="localhost")
+    cur = conn.cursor()
+    return conn, cur
+
+def close_connection(conn,cur):
+    cur.close()
+    conn.close()
+
 def check_category(page_id):
     #stab
     return True
@@ -67,8 +78,7 @@ def get_analyzer():
 
 #%%
 if __name__=="__main__":
-    logger = getLogger(__name__)
-    logger.setLevel(INFO)
+    logger = getLogger()
     handler = StreamHandler()
     formatter = Formatter("%(asctime)s : %(levelname)s : %(message)s")
     handler.setFormatter(formatter)
@@ -76,5 +86,14 @@ if __name__=="__main__":
     logger.addHandler(handler)
     logger.propagate = False
 
-    model = train_corpus(get_sentences_xml("E:\\wiki\\AA\\wiki_00"))
-    model.save("debug.bin")
+    conn , cur = setup_connector()
+    cur.execute("select * from wiki_temp.japan_plitics limit 10")
+    for row in cur.fetchall():
+        print(row[0],row[1])
+    close_connection(conn,cur)
+    
+    #model = train_corpus(get_sentences_xml("E:\\wiki\\AA\\wiki_00"))
+    #model.save("debug.bin")
+
+#%%
+print("a")
