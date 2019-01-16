@@ -94,6 +94,3 @@ if __name__=="__main__":
     
     #model = train_corpus(get_sentences_xml("E:\\wiki\\AA\\wiki_00"))
     #model.save("debug.bin")
-
-#%%
-print("a")
