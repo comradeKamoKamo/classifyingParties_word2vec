@@ -61,14 +61,14 @@ def add_sentences_xml(path,cur,tagger,sentences,*,logger=None):
         page_id = doc.attrib["id"]
         global page_count, target_page_count
         page_count += 1
-        if check_category(cur,page_id,scheme=SCHEME):
-            target_page_count += 1
-            logger.info("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
-            lines = doc.text.split("\n")
-            for l in lines:
-                sentences.append(get_wakati(l,tagger))
-        else:
-            logger.info("Ignore: {0}:{1}".format(page_id,doc.attrib["title"]))
+        #if check_category(cur,page_id,scheme=SCHEME):
+        target_page_count += 1
+        logger.info("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
+        lines = doc.text.split("\n")
+        for l in lines:
+            sentences.append(get_wakati(l,tagger))
+        #else:
+        #    logger.info("Ignore: {0}:{1}".format(page_id,doc.attrib["title"]))
     return sentences
 
 def get_wakati(text,tagger):
@@ -113,7 +113,7 @@ if __name__=="__main__":
                 add_sentences_xml(str(xml),cur,tagger,sentences,logger=logger)
                 logger.info("wakati: {0} pages / all {1} pages".format(target_page_count,page_count))
     model = train_corpus(sentences)
-    model.save("make_corpus\politics.model")
+    model.save("make_corpus\wiki.model")
     logger.info("finish!")
 
     close_connection(conn,cur)
