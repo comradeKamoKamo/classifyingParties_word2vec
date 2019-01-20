@@ -15,6 +15,8 @@ import mysql.connector
 #%%
 
 SCHEME = "politics"
+page_count = 0
+target_page_count = 0
 
 def setup_connector():
     username = os.environ.get("MYSQL_USERNAME")
@@ -36,20 +38,17 @@ def check_category(cur, page_id,*,scheme):
     return result[0][0]
 
 #%%
-def train_corpus(sentences,model=None):
-    if model is None:
-            model = Word2Vec(sentences=sentences,
-                        sg=1,
-                        size=200,
-                        hs=0,
-                        min_count=0,
-                        negative=3)
-    else:
-        model.train(sentences)
+def train_corpus(sentences):
+    model = Word2Vec(sentences=sentences,
+                sg=0,
+                size=200,
+                hs=0,
+                negative=5,
+                sample=1e-3)
     return model
 
 #%%
-def get_sentences_xml(path,cur,tagger,*,logger=None):
+def add_sentences_xml(path,cur,tagger,sentences,*,logger=None):
     __logger = getLogger(__name__)
     __logger.addHandler(NullHandler())
     logger = logger or __logger
@@ -58,10 +57,12 @@ def get_sentences_xml(path,cur,tagger,*,logger=None):
         xml_string = "<docs>" + f.read() + "</docs>"
     xml_string = re.sub(r"</??[^(doc)(docs)]+?(\s.+?)??>","",xml_string)
     root = etree.XML(xml_string,etree.XMLParser(recover=True))
-    sentences = []
     for doc in root:
         page_id = doc.attrib["id"]
+        global page_count, target_page_count
+        page_count += 1
         if check_category(cur,page_id,scheme=SCHEME):
+            target_page_count += 1
             logger.info("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
             lines = doc.text.split("\n")
             for l in lines:
@@ -101,22 +102,19 @@ if __name__=="__main__":
     logger.propagate = False
 
     conn, cur = setup_connector()
-    wiki_dir = Path("E:\wiki")
-    model = None
+    wiki_dir = Path("D:\wiki")
     tagger = get_tagger()
+    sentences = []
     for subdir in wiki_dir.glob("*"):
         if subdir.is_dir():
             for xml in subdir.glob("*"):
                 if xml.is_dir():
-                    continue
-                if model is None:
-                    model = train_corpus(
-                        get_sentences_xml(str(xml),cur,tagger,logger=logger))
-                else:
-                    model = train_corpus(
-                        get_sentences_xml(str(xml),cur,tagger,logger=logger),model)
-                model.save("make_corpus\politics.model")
-                logger.info("Saved: {0}".format(str(xml)))
+                    continue  
+                add_sentences_xml(str(xml),cur,tagger,sentences,logger=logger)
+                logger.info("wakati: {0} pages / all {1} pages".format(target_page_count,page_count))
+    model = train_corpus(sentences)
+    model.save("make_corpus\politics.model")
+    logger.info("finish!")
 
     close_connection(conn,cur)
 
