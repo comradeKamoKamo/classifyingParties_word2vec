@@ -14,7 +14,7 @@ import mysql.connector
 
 #%%
 
-SCHEME = "japan_politics"
+SCHEME = "politics"
 
 def setup_connector():
     username = os.environ.get("MYSQL_USERNAME")
@@ -116,6 +116,7 @@ if __name__=="__main__":
                     model = train_corpus(
                         get_sentences_xml(str(xml),cur,tagger,logger=logger),model)
                 model.save("make_corpus\politics.model")
+                logger.info("Saved: {0}".format(str(xml)))
 
     close_connection(conn,cur)
 
