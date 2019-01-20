@@ -55,7 +55,10 @@ def add_sentences_xml(path,cur,tagger,sentences,*,logger=None):
     logger.info("open: {0}".format(path))
     with open(path,"r",encoding="utf-8") as f:
         xml_string = "<docs>" + f.read() + "</docs>"
-    xml_string = re.sub(r"</??[^(doc)(docs)]+?(\s.+?)??>","",xml_string)
+    for tags in re.findall(r"<.+?>",xml_string):
+        if re.match(r"</??((doc)|(docs))+?(\s.+?)??>",tags) is None:
+            xml_string = xml_string.replace(tags,"")
+            logger.info("RE:{0}".format(tags))
     root = etree.XML(xml_string,etree.XMLParser(recover=True))
     for doc in root:
         page_id = doc.attrib["id"]
