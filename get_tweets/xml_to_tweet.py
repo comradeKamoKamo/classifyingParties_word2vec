@@ -16,7 +16,20 @@ class XmlToTweets:
         except FileNotFoundError:
             logger.error("FileNotFonundError{0}".format(xmlfilepath))
             raise
-        
+    
+    def tweets_to_xml(self,path,tweets):
+        root = ET.Element("tweets")
+        for tweet in tweets:
+            tweetElement = ET.SubElement(root,"tweet")
+            tweetElement.set("id",tweet["id"])
+            textElement = ET.SubElement(tweetElement,"text")
+            textElement.text = tweet["text"]
+            wakatiElement = ET.SubElement(tweetElement,"wakati")
+            wakatiElement.text = tweet["wakati"]
+        with open(path,"w",encoding="utf-8") as f:
+            et = ET.ElementTree(root)
+            et.write(f,encoding="unicode")
+
     def xml_to_tweets(self,limit=0,*,exclude_wakati=False,exclude_text=False,logger=None):
         __logger = getLogger(__name__)
         __logger.addHandler(NullHandler())
