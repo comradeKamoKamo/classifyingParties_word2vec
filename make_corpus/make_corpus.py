@@ -76,13 +76,17 @@ def get_wakati(text,tagger):
     lines = text.split("\n")
     wakati = []
     for l in lines:
-            # base_form
-            wakati.append(tagger.parse(l).split("\t")[2])
+        # base_form
+        for token in tagger.parse(l).split("\n"):
+            t = token.split("\t")
+            if len(t) < 3 :
+                continue
+            wakati.append(t[2])
     return wakati
 
 def get_tagger():
     """remove the filter funcs"""
-    m = MeCab.Tagger ("-Ochasen")
+    m = MeCab.Tagger("-Ochasen")
     return m
 
 #%% 
