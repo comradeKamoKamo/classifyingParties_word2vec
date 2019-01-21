@@ -7,6 +7,10 @@
 Untitled*.ipynb
 debug*
 
+# large size files
+*.model
+*corpus.txt
+
 # win
 desktop.ini
 

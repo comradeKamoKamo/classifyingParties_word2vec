@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 from lxml import etree
-from gensim.models import Word2Vec
+from gensim.models import Word2Vec, word2vec
 import MeCab
 import mysql.connector
 
@@ -38,8 +38,8 @@ def check_category(cur, page_id,*,scheme):
     return result[0][0]
 
 #%%
-def train_corpus(sentences):
-    model = Word2Vec(sentences=sentences,
+def train_corpus(file):
+    model = Word2Vec(word2vec.LineSentence(file),
                 sg=0,
                 size=200,
                 hs=0,
@@ -48,7 +48,7 @@ def train_corpus(sentences):
     return model
 
 #%%
-def add_sentences_xml(path,cur,tagger,sentences,*,logger=None):
+def add_sentences_xml(path,cur,tagger,file,*,logger=None):
     __logger = getLogger(__name__)
     __logger.addHandler(NullHandler())
     logger = logger or __logger
@@ -58,7 +58,7 @@ def add_sentences_xml(path,cur,tagger,sentences,*,logger=None):
     for tags in re.findall(r"<.+?>",xml_string):
         if re.match(r"</??((doc)|(docs))+?(\s.+?)??>",tags) is None:
             xml_string = xml_string.replace(tags,"")
-            logger.info("RE:{0}".format(tags))
+            logger.debug("RE:{0}".format(tags))
     root = etree.XML(xml_string,etree.XMLParser(recover=True))
     for doc in root:
         page_id = doc.attrib["id"]
@@ -66,13 +66,16 @@ def add_sentences_xml(path,cur,tagger,sentences,*,logger=None):
         page_count += 1
         #if check_category(cur,page_id,scheme=SCHEME):
         target_page_count += 1
-        logger.info("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
+        logger.debug("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
         lines = doc.text.split("\n")
         for l in lines:
-            sentences.append(get_wakati(l,tagger))
+            wakati_line = ""
+            for token in get_wakati(l,tagger):
+                wakati_line += token + " "
+            file.write(wakati_line[:-1] + "\n")
         #else:
         #    logger.info("Ignore: {0}:{1}".format(page_id,doc.attrib["title"]))
-    return sentences
+    return file
 
 def get_wakati(text,tagger):
     if len(text)==0:
@@ -104,19 +107,24 @@ if __name__=="__main__":
     logger.addHandler(handler)
     logger.propagate = False
 
+    CORPUS_PATH = "make_corpus/jawiki_corpus.txt"
+
     conn, cur = setup_connector()
     wiki_dir = Path("D:\wiki")
     tagger = get_tagger()
-    sentences = []
-    for subdir in wiki_dir.glob("*"):
-        if subdir.is_dir():
-            for xml in subdir.glob("*"):
-                if xml.is_dir():
-                    continue  
-                add_sentences_xml(str(xml),cur,tagger,sentences,logger=logger)
-                logger.info("wakati: {0} pages / all {1} pages".format(target_page_count,page_count))
-    model = train_corpus(sentences)
-    model.save("make_corpus\wiki.model")
+    if Path(CORPUS_PATH).exists():
+        logger.error("{0} aleredy exists!".format(CORPUS_PATH))
+        exit(1)
+    with Path(CORPUS_PATH).open("a",encoding="utf-8") as corpus_file:
+        for subdir in wiki_dir.glob("*"):
+            if subdir.is_dir():
+                for xml in subdir.glob("*"):
+                    if xml.is_dir():
+                        continue  
+                    add_sentences_xml(str(xml),cur,tagger,corpus_file,logger=logger)
+                    logger.info("target: {0} pages / all: {1} pages".format(target_page_count,page_count))
+    model = train_corpus(CORPUS_PATH)
+    model.save("make_corpus\jawiki.model")
     logger.info("finish!")
 
     close_connection(conn,cur)
