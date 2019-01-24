@@ -10,7 +10,7 @@ debug*
 # large size files
 *.model
 *corpus.txt
-*.npy
+make_corpus/*.npy
 
 # win
 desktop.ini

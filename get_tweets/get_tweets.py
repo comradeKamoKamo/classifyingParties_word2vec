@@ -35,6 +35,7 @@ auth.set_access_token(access_token,access_token_secret)
 api = tweepy.API(auth)
 
 #%%
+"""
 t = tokenizer.Tokenizer()
 char_filters = [analyzer.UnicodeNormalizeCharFilter(),
                 analyzer.RegexReplaceCharFilter(r"@[a-zA-Z\d]*",""),
@@ -50,7 +51,7 @@ def get_wakati(text):
     for token in t_analyzer.analyze(text):
         wakati_text += token.base_form + " "
     return wakati_text[0:-1]
-
+"""
 #%%
 def get_and_save_tweets(screen_name):
     logger.info(screen_name)
@@ -67,6 +68,7 @@ def get_and_save_tweets(screen_name):
                     text = get_display_text(tweet)
                     textElement = ET.SubElement(tweetElement,"text")
                     textElement.text = text
+                    """
                     wakati_text = get_wakati(text)
                     if len(wakati_text)==0 :
                         continue
@@ -76,6 +78,7 @@ def get_and_save_tweets(screen_name):
                             break
                     wakatiElement = ET.SubElement(tweetElement,"wakati")
                     wakatiElement.text=wakati_text
+                    """
                     tree = ET.ElementTree(tweetElement)
                     tree.write(f,encoding="unicode",xml_declaration=False)
                     f.write("</tweets>")
