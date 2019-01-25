@@ -33,5 +33,5 @@ if __name__ == "__main__" :
                 words = t["wakati"].replace("\n"," ").split(" ")
                 vector = get_tweet_vector(words,model)
                 vectors.append(vector)
-            np.save("data/{0}.npy".format(pd.name),vectors)
+            np.save("politicians/{0}.npy".format(pd.name),vectors)
 
