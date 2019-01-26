@@ -56,6 +56,8 @@ class Train:
         model.save_weights("model{0}.hdf5".format(extext))
         r = model.evaluate(X_test,y_test)
         print(r)
+        with Path("data/accuracy.txt").open("a") as f:
+            f.write(str(r[1]) + "\n")
         return model
 
     def test(self,model,X_test,y_test,politicians,extext=""):
