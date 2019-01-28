@@ -20,7 +20,7 @@ def get_tweet_vector(words,model):
 #%%
 if __name__ == "__main__" :
 
-    model = Word2Vec.load(r"make_corpus/jawiki.model")
+    model = Word2Vec.load(r"make_corpus/jawiki_japan_politics.model")
     Path("data").mkdir(exist_ok=True)
 
     for pd in [d for d in Path("get_tweets").glob("*") if d.is_dir()]:

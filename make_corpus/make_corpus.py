@@ -14,7 +14,7 @@ import mysql.connector
 
 #%%
 
-SCHEME = "politics"
+SCHEME = "japan_politics"
 page_count = 0
 target_page_count = 0
 
@@ -64,17 +64,17 @@ def add_sentences_xml(path,cur,tagger,file,*,logger=None):
         page_id = doc.attrib["id"]
         global page_count, target_page_count
         page_count += 1
-        #if check_category(cur,page_id,scheme=SCHEME):
-        target_page_count += 1
-        logger.debug("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
-        lines = doc.text.split("\n")
-        for l in lines:
-            wakati_line = ""
-            for token in get_wakati(l,tagger):
-                wakati_line += token + " "
-            file.write(wakati_line[:-1] + "\n")
-        #else:
-        #    logger.info("Ignore: {0}:{1}".format(page_id,doc.attrib["title"]))
+        if check_category(cur,page_id,scheme=SCHEME):
+            target_page_count += 1
+            logger.info("Wakati: {0}:{1}".format(page_id,doc.attrib["title"]))
+            lines = doc.text.split("\n")
+            for l in lines:
+                wakati_line = ""
+                for token in get_wakati(l,tagger):
+                    wakati_line += token + " "
+                file.write(wakati_line[:-1] + "\n")
+        else:
+            logger.debug("Ignore: {0}:{1}".format(page_id,doc.attrib["title"]))
     return file
 
 def get_wakati(text,tagger):
@@ -107,7 +107,7 @@ if __name__=="__main__":
     logger.addHandler(handler)
     logger.propagate = False
 
-    CORPUS_PATH = "make_corpus/jawiki_corpus.txt"
+    CORPUS_PATH = "make_corpus/jawiki_japan_politics_corpus.txt"
 
     conn, cur = setup_connector()
     wiki_dir = Path("D:\wiki")
@@ -124,7 +124,8 @@ if __name__=="__main__":
                     add_sentences_xml(str(xml),cur,tagger,corpus_file,logger=logger)
                     logger.info("target: {0} pages / all: {1} pages".format(target_page_count,page_count))
     model = train_corpus(CORPUS_PATH)
-    model.save("make_corpus\jawiki.model")
+    model.save("make_corpus\jawiki_japan_politics.model")
+    logger.info("target: {0} pages / all: {1} pages".format(target_page_count,page_count))
     logger.info("finish!")
 
     close_connection(conn,cur)
