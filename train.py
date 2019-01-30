@@ -1,6 +1,7 @@
 #%%
 from pathlib import Path
 import copy
+import pickle
 from logging import getLogger, INFO, StreamHandler
 
 import numpy as np
@@ -10,7 +11,6 @@ from keras.layers import Conv2D,MaxPool2D,Flatten,Dropout,Dense,Reshape
 from keras import utils
 from keras.callbacks import EarlyStopping
 from keras.models import model_from_json
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_curve,auc,roc_curve,confusion_matrix
 from sklearn.preprocessing import label_binarize
 import matplotlib.pyplot as plt
@@ -25,7 +25,29 @@ class Train:
         data_dict = self.load_data()
         X, y, politicians = self.data_to_xy(data_dict)
         n_classes = len(politicians)
-        X_train , X_test , y_train ,y_test = train_test_split(X,y,test_size=0.3)
+        #X_train , X_test , y_train ,y_test = train_test_split(X,y,test_size=0.3)
+
+        with Path("split_data.pickle").open("rb") as f:
+            split_info = pickle.load(f)
+        
+        X_train = []
+        y_train = []
+        X_test = []
+        y_test = []
+        for xi, yi in zip(X,y):
+            if xi[0] in split_info["test"][xi[1]]:
+                X_test.append(xi[2])
+                y_test.append(yi)
+            else:
+                X_train.append(xi[2])
+                y_train.append(yi)
+        
+        X_train = np.array(X_train,dtype=float)
+        y_train = np.array(y_train,dtype=float)
+        X_test = np.array(X_test,dtype=float)
+        y_test = np.array(y_test,dtype=float)
+        print(X_test)
+
         y_test_raw = copy.copy(y_test)
         y_train = utils.np_utils.to_categorical(y_train, n_classes)
         y_test = utils.np_utils.to_categorical(y_test, n_classes)
@@ -52,7 +74,7 @@ class Train:
                 metrics=['accuracy'])
         es_cb = EarlyStopping()
         model.fit(X_train,y_train,
-            validation_data=(X_test,y_test),epochs=256,callbacks=[es_cb])
+            validation_data=(X_test,y_test),epochs=1024,callbacks=[es_cb])
         model.save_weights("model{0}.hdf5".format(extext))
         r = model.evaluate(X_test,y_test)
         print(r)
@@ -126,9 +148,10 @@ class Train:
 
     def load_data(self):
         data = dict()
-        for npy in Path("politicians").glob("*.npy"):
+        for npy in Path("politicians").glob("*.pickle"):
             name = npy.stem
-            data[name] = np.load(str(npy))
+            with npy.open("rb") as f:
+                data[name] = pickle.load(f)
         return data
 
     def data_to_xy(self,dict_data):
@@ -141,7 +164,7 @@ class Train:
                 x.append(vector)
                 y.append(i)
             i += 1
-        return np.asarray(x), np.asarray(y), politicians
+        return x, np.asarray(y), politicians
 
 if __name__ == "__main__" :
     train = Train()

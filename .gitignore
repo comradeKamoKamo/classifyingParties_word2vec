@@ -6,6 +6,7 @@
 *.db-journal
 Untitled*.ipynb
 debug*
+split_data.pickle
 
 # large size files
 *.model
