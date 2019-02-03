@@ -1,7 +1,7 @@
 #%%
 from pathlib import Path 
 import pickle
-from logging import getLogger, StreamHandler, INFO, Formatter
+from logging import getLogger, StreamHandler, INFO, Formatter, NullHandler
 
 import numpy as np
 from gensim.models import TfidfModel
@@ -27,7 +27,7 @@ if __name__=="__main__" :
 
     logger = getLogger()
     logger.setLevel(INFO)
-    handler = StreamHandler()
+    handler = NullHandler()
     formatter = Formatter("%(asctime)s : %(levelname)s : %(message)s")
     handler.setFormatter(formatter)
     handler.setLevel(INFO)
@@ -42,7 +42,7 @@ if __name__=="__main__" :
         xmlpath = p / Path("tweets.xml")
         if xmlpath.exists():
             logger.info(p.name)
-            x2t = XmlToTweets("get_tweets/AbeShinzo/tweets.xml")
+            x2t = XmlToTweets(str(xmlpath))
             tweets = x2t.xml_to_tweets(exclude_text=True)
             for tweet in tweets:
                 if is_train_data(tweet["id"], p.name, split_info):
@@ -50,7 +50,7 @@ if __name__=="__main__" :
 
     dct = Dictionary(dataset)  # fit dictionary
     corpus = [dct.doc2bow(line) for line in dataset]  # convert corpus to BoW format
-    model = TfidfModel(corpus)
+    model = TfidfModel(corpus,normalize=True)
 
     model.save("tfidf.model")
     dct.save("dct.model")

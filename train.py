@@ -1,6 +1,7 @@
 #%%
 from pathlib import Path
 import copy
+import sys
 import pickle
 from logging import getLogger, INFO, StreamHandler
 
@@ -96,7 +97,7 @@ class Train:
         cm = confusion_matrix(y_test,preds)
         cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
         np.save("data/cm{0}.npy".format(extext),cm)
-        
+        """
         fig = plt.figure()
         ax = plt.subplot()
         cax = ax.matshow(cm, interpolation="nearest", cmap="autumn_r")
@@ -142,7 +143,7 @@ class Train:
         plt.plot([0,1],[0,1],linestyle="dashed",color="pink")
         plt.title("ROC (Micro Average) AUC={0}".format(roc_auc))
         plt.show()
-        
+        """        
 
         return c_acc 
 
@@ -168,4 +169,7 @@ class Train:
 
 if __name__ == "__main__" :
     train = Train()
-    train.main()
+    if len(sys.argv) > 0:
+        train.main(sys.argv[1])
+    else:
+        train.main()

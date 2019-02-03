@@ -9,6 +9,7 @@ class XmlToTweets:
     def __init__(self,xmlfilepath,*,logger=None):
         __logger = getLogger(__name__)
         __logger.addHandler(NullHandler())
+        __logger.propagate = False
         logger = logger or __logger
         try:
             with open(xmlfilepath,"r",encoding="utf-8") as f:
@@ -33,6 +34,7 @@ class XmlToTweets:
     def xml_to_tweets(self,limit=0,*,exclude_wakati=False,exclude_text=False,logger=None):
         __logger = getLogger(__name__)
         __logger.addHandler(NullHandler())
+        __logger.propagate = False
         logger = logger or __logger
         try:
             root = ET.fromstring(self.XmlString)
