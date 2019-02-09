@@ -50,7 +50,7 @@ if __name__=="__main__" :
 
     dct = Dictionary(dataset)  # fit dictionary
     corpus = [dct.doc2bow(line) for line in dataset]  # convert corpus to BoW format
-    model = TfidfModel(corpus,smartirs="btn")
+    model = TfidfModel(corpus,smartirs="btc")
 
     model.save("tfidf.model")
     dct.save("dct.model")
