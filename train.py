@@ -71,7 +71,7 @@ class Train:
     def train(self,X_train,y_train,X_test,y_test,model,extext=""):
         # 目的関数にSGD、誤差関数にloglessを用いる
         model.compile(optimizer='sgd',
-                loss='binary_crossentropy',
+                loss='categorical_crossentropy',
                 metrics=['accuracy'])
         es_cb = EarlyStopping()
         model.fit(X_train,y_train,
