@@ -4,6 +4,7 @@ import copy
 import sys
 import pickle
 from logging import getLogger, INFO, StreamHandler
+from collections import OrderedDict
 
 import numpy as np
 
@@ -35,26 +36,29 @@ class Train:
         y_train = []
         X_test = []
         y_test = []
+        Z_train = []
+        Z_test = []
         for xi, yi in zip(X,y):
             if xi[0] in split_info["test"][xi[1]]:
                 X_test.append(xi[2])
                 y_test.append(yi)
+                Z_test.append((yi,xi[0]))
             else:
                 X_train.append(xi[2])
                 y_train.append(yi)
+                Z_train.append((yi,xi[0]))
         
         X_train = np.array(X_train,dtype=float)
         y_train = np.array(y_train,dtype=float)
         X_test = np.array(X_test,dtype=float)
         y_test = np.array(y_test,dtype=float)
-        print(X_test)
 
         y_test_raw = copy.copy(y_test)
         y_train = utils.np_utils.to_categorical(y_train, n_classes)
         y_test = utils.np_utils.to_categorical(y_test, n_classes)
         model = self.build_model(n_classes)
         self.train(X_train,y_train,X_test,y_test,model,extext)
-        self.test(model,X_test,y_test_raw,politicians,extext)
+        self.test(model,X_test,y_test_raw,politicians,Z_test,extext)
 
     def build_model(self,n_classes):
         model = Sequential()
@@ -69,8 +73,8 @@ class Train:
         return model
 
     def train(self,X_train,y_train,X_test,y_test,model,extext=""):
-        # 目的関数にSGD、誤差関数にloglessを用いる
-        model.compile(optimizer='sgd',
+        # 目的関数にAdam、誤差関数にloglessを用いる
+        model.compile(optimizer='adam',
                 loss='categorical_crossentropy',
                 metrics=['accuracy'])
         es_cb = EarlyStopping()
@@ -83,16 +87,22 @@ class Train:
             f.write(str(r[1]) + "\n")
         return model
 
-    def test(self,model,X_test,y_test,politicians,extext=""):
+    def test(self,model,X_test,y_test,politicians,Z_test,extext=""):
         c_acc = 0
         n_classes = len(politicians)
 
         raw_preds = model.predict(X_test)
         preds = []
+        max_r = []
         for raw_pred in raw_preds:
             preds.append(np.where(raw_pred == max(raw_pred))[0][0])
+            max_r.append(max(raw_pred))
         y_test = np.array(y_test)
         preds = np.array(preds)
+
+        result = (preds,Z_test,max_r)
+        with Path("data/result{0}.pickle".format(extext)).open("wb") as f:
+            pickle.dump(result,f)
 
         cm = confusion_matrix(y_test,preds)
         cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
@@ -148,7 +158,7 @@ class Train:
         return c_acc 
 
     def load_data(self):
-        data = dict()
+        data = OrderedDict()
         for npy in Path("politicians").glob("*.pickle"):
             name = npy.stem
             with npy.open("rb") as f:

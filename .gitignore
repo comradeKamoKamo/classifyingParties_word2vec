@@ -7,6 +7,9 @@
 Untitled*.ipynb
 debug*
 split_data.pickle
+~$*
+*.hdf5
+*.json
 
 # large size files
 *.model
