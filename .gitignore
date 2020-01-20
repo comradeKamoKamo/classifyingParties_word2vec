@@ -6,6 +6,8 @@
 *.db-journal
 Untitled*.ipynb
 debug*
+bert-wiki-ja/[(model)(wiki)]*
+*.npy
 
 # large size files
 *.model
