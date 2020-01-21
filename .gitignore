@@ -8,6 +8,7 @@ Untitled*.ipynb
 debug*
 bert-wiki-ja/[(model)(wiki)]*
 *.npy
+*.hdf5
 
 # large size files
 *.model
